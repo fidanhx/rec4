@@ -1,65 +1,73 @@
 
 import React from 'react';
-import { useState } from 'react';
-import './Menu.css';
+import {useState} from 'react';
+import {useEffect} from 'react';
 
+import './Menu.css'
 const Menu = () => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [loginMessage, setLoginMessage] = useState('');
+  const [endData, setEndData] = useState([]);
+  const [searchData, setSearchData] = useState('');
+  const [department, setDepartment] = useState('');
 
-    const handleEmailChange = (e) => {
-        setEmail(e.target.value);
-    };
+  useEffect(() => {
+    fetch('https://5ea5ca472d86f00016b4626d.mockapi.io/brotherhood')
+      .then(res => res.json())
+      .then(data => {
+        setEndData(data);
+      });
+  }, []);
 
-    const handlePasswordChange = (e) => {
-        setPassword(e.target.value);
-    };
+  const searchChange = (event) => {
+    setSearchData(event.target.value);
+  };
 
-    const handleKeyUp = () => {
-    
-        if (email.endsWith('.ru')) {
-            setLoginMessage(`Email ending with ".ru": ${email}`);
-        } else {
-            setLoginMessage('');
-        }
-    };
+  const departmentChange = (event) => {
+    setDepartment(event.target.value);
+  };
 
-    const handleLogin = () => {
-       
-        if (password.length < 8) {
-            alert('Password must be at least 8 characters long');
-            return;
-        }
+  const filterData = endData.filter((e) =>
+    e.name.toLowerCase().includes(searchData.toLowerCase()) &&
+    (department === '' || e.department.toLowerCase() === department.toLowerCase())
+  );
 
-        
-        console.log('Logging in with:', email);
+  const departments = [...new Set(endData.map((e) => e.department))];
 
-        
-        if (email.endsWith('.ru')) {
-            setLoginMessage(`Logged in as: ${email}`);
-        } else {
-            setLoginMessage('Email must end with ".ru"');
-        }
-    };
-
-    return (
-        <div className='userLogin'>
-            <div className="inputs">
-            <h1>Login:</h1>
-              <div className='i1'>
-                <input type="text" placeholder='Email' className='email' value={email} onChange={handleEmailChange} onKeyUp={handleKeyUp}/>
-                </div>
-                <div className='i2'>
-                <input type="password" placeholder='Password' className='password' value={password} onChange={handlePasswordChange}/>
-                </div>
-                <button className='login' onClick={handleLogin}>
-                    Login
-                </button>
-            </div>
-            {loginMessage && <p>{loginMessage}</p>}
-        </div>
-    );
-}
+  return (
+    <div className='main'>
+      <div className='search'>
+        <label>Search according to "Name": </label>
+        <input type="text" value={searchData} onChange={searchChange}/>
+      </div>
+      <div className='select'>
+        <label>Select type of Department: </label>
+        <select value={department} onChange={departmentChange}>
+          <option value="">All Departments</option>
+          {departments.map((department) => (
+            <option key={department} value={department}>
+              {department}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className='data'>
+        {filterData.map((e) => (
+          <ul key={e.id}>
+            <li>
+              <p>Name:
+                <span> {e.name}</span>
+              </p>
+              <p>Department: 
+                <span> {e.department}</span>
+                </p>
+              <p>Role: 
+                <span> {e.role}</span>
+                </p>
+            </li>
+          </ul>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 export default Menu;
